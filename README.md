@@ -1,102 +1,103 @@
-# citation-to-endnote-ris
+[中文版](README.zh-CN.md) | English
 
-Cross-platform Agent Skill for converting messy citation/reference text into one validated, batch-importable EndNote RIS file.
+# Citation to EndNote RIS
 
-## Package contents
+While writing a paper, references arrive from everywhere. Your adviser
+leaves "cite the recent work on this" in a chat message or a Word comment — no
+journal, no volume, sometimes not even a full title. You paste passages from
+webpages and PDFs into your notes as you search. Different sources, different
+formats, different languages, all mixed into one pile. Getting them into
+EndNote normally means normalizing every record by hand, one at a time. This
+skill takes the whole pile of mixed citation text — chat messages, comments,
+web clippings, whatever you have — and turns it into one validated,
+batch-importable EndNote RIS file, keeping your reference order, keeping your
+wording, inventing nothing.
 
-- `SKILL.md` — main skill instructions
-- `references/ris-mapping.md` — type and field mapping rules
-- `scripts/validate_ris.py` — lightweight RIS syntax/duplicate validator
-- `examples/` — sample messy input and validated RIS output
+## What it does
 
-## Install in Claude Code
+Give it a block of text containing one or many citations, pasted or from a
+file. It:
 
-Personal skill:
+1. **Segments.** Finds how many references are actually there, including
+   line-wrapped or fragmentary ones.
+2. **Extracts.** Reads every field off the supplied text: authors, titles,
+   journal, volume/issue/pages, DOI, PMID, year, and the rest.
+3. **Classifies.** Picks the most specific RIS type each citation supports —
+   journal article, meeting abstract, conference paper, book, chapter,
+   thesis, report, web page, dataset, and more.
+4. **Verifies — only when you have it.** If the PubMed Surfing MCP server is
+   connected (or you agree to install it), it checks PubMed for discrepancies
+   and shows you a table. Nothing from PubMed touches your file until you
+   approve it.
+5. **Writes.** Produces a single UTF-8 `.ris` with one record per reference,
+   then runs its own syntax validator over it.
+
+That is the whole flow: messy text in, one valid file out.
+
+## What it won't do
+
+- It never invents bibliographic facts. No author, title, year, volume, or
+  page range is filled in from memory or guessing. Unsupported fields are left
+  empty or marked ambiguous, never fabricated.
+- It does not silently "fix" your text, deduplicate records, or reorder
+  references — duplicates and uncertainty are reported to you, and changes
+  happen only if you ask.
+- It does not query Crossref, DOI resolvers, or the web on its own. Offline is
+  the default; PubMed Surfing is the only voluntary exception, and it needs
+  your consent to install and your approval to apply anything.
+
+## What kind of thing this is
+
+A _skill_, not a program: one folder with a `SKILL.md` and a few small support
+files, following the [Agent Skills](https://agentskills.io) open standard.
+
+- It runs inside an agent: Claude Code, Codex, or OpenCode, whichever you have.
+- The only executable is a Python 3 validator using the standard library —
+  no `pip install`, no build step on any OS.
+- The client/OS matrix follows each client's documented skills locations
+  (macOS, Linux, and Windows; path table in INSTALL.md section 0.5). We develop
+  and test on macOS; the Windows notes in INSTALL.md follow the clients'
+  documentation.
+- OpenCode additionally reads the Claude Code and Codex skills directories,
+  which its own docs confirm — so one install can cover more than one client.
+
+## How to use
+
+**Install** — paste into your agent (Claude Code, Codex, or OpenCode); the
+agent reads INSTALL.md and does the work:
+
+```
+Install the citation-to-endnote-ris skill. The repository is
+https://github.com/JC-SYSU/citation-to-endnote-ris.
+
+1. Read INSTALL.md in full and execute it step by step. If you cannot clone
+   the repo, read it directly:
+   https://raw.githubusercontent.com/JC-SYSU/citation-to-endnote-ris/main/INSTALL.md
+2. Probe the machine, pick the right skills directories, and copy the skill
+   folder in (sections 0.5 and 1).
+3. Run the acceptance checklist (section 3) and report each item to me.
+   Anything that fails gets fixed before you report back.
+```
+
+Or install by hand: follow `INSTALL.md` directly. Nothing runs at install
+time; it is a folder copy.
+
+**Day-to-day** — paste a reference list into the agent and ask for an
+EndNote RIS file, or point it at a text file:
+
+> Convert these citations into one RIS file I can import into EndNote.
+
+The agent writes the file, validates it, and reports the type breakdown.
+
+## Quick verification
 
 ```bash
-mkdir -p ~/.claude/skills
-cp -R citation-to-endnote-ris ~/.claude/skills/
+python3 scripts/validate_ris.py examples/output.ris
 ```
 
-Project skill:
+Expected: `RESULT: VALID` with 3 records (JOUR, CPAPER, ELEC).
 
-```bash
-mkdir -p .claude/skills
-cp -R citation-to-endnote-ris .claude/skills/
-```
+## License
 
-Invoke with:
-
-```text
-/citation-to-endnote-ris
-```
-
-or ask Claude naturally to convert a messy reference list into a batch EndNote RIS file.
-
-## Install in Codex
-
-Personal skill:
-
-```bash
-mkdir -p ~/.agents/skills
-cp -R citation-to-endnote-ris ~/.agents/skills/
-```
-
-Project skill:
-
-```bash
-mkdir -p .agents/skills
-cp -R citation-to-endnote-ris .agents/skills/
-```
-
-Invoke through the skills picker or mention the skill explicitly, for example:
-
-```text
-$citation-to-endnote-ris Convert these messy citations into one EndNote RIS file.
-```
-
-## Install in OpenCode
-
-OpenCode reads skills from `~/.config/opencode/skills/`, and it also natively
-reads the Claude Code and Codex locations from the two sections above — so in
-most setups **installing once into `~/.claude/skills/` or `~/.agents/skills/`
-already makes the skill available in OpenCode**. If you want the OpenCode-only
-directory as well:
-
-```bash
-mkdir -p ~/.config/opencode/skills
-cp -R citation-to-endnote-ris ~/.config/opencode/skills/
-```
-
-## Windows
-
-All `~` paths above map to `%USERPROFILE%` on Windows:
-
-| Client | Personal skills directory |
-|---|---|
-| Claude Code | `%USERPROFILE%\.claude\skills\` |
-| Codex / OpenCode-compatible | `%USERPROFILE%\.agents\skills\` |
-| OpenCode-only | `%USERPROFILE%\.config\opencode\skills\` |
-
-No installation scripts are run at install time; skills are plain files, so a
-`copy` command works on every platform.
-
-## Client and platform compatibility
-
-- Skill format: one `SKILL.md` per folder with YAML frontmatter (`name` plus
-  `description`), following the [Agent Skills](https://agentskills.io) open
-  standard. The folder name must match `name`; `citation-to-endnote-ris`
-  complies with the naming rules of all three clients.
-- The only executable is `scripts/validate_ris.py` — Python 3, standard library
-  only, no `pip install`. On Windows run it as `python`/`py -3` instead of
-  `python3`.
-- The PubMed Surfing verification optional extra works on macOS and Windows via
-  prebuilt release archives, and on Linux by building from source (Go >= 1.25);
-  installation is driven by the surfacing repository's `INSTALL.md`, and its
-  absence never blocks conversion.
-
-## Default behavior
-
-The skill is offline-first: it extracts only what the user supplied and does not query Crossref, PubMed, DOI resolvers, or the web unless the user explicitly asks for verification/enrichment. When the PubMed Surfing MCP server is missing, the skill offers — with the user's consent — to install it by following the repository's `INSTALL.md` (`https://github.com/JC-SYSU/pubmed-surfing`). Any install problem degrades back to skipping verification and never blocks conversion.
-
-It preserves input order, does not silently deduplicate, reports ambiguous records, and validates the final `.ris` before completion.
+MIT. Details of the mapping rules live in `references/ris-mapping.md`, field
+semantics in `SKILL.md`.
