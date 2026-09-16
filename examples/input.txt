@@ -1,0 +1,5 @@
+1. Smith J, Lee A. Example article. Journal of Examples. 2024;12(3):101-109. doi: https://doi.org/10.1234/example.1
+
+2 Brown T Example poster title. Poster 442. Annual Example Congress, Boston, 2023.
+
+World Health Organization. Example web guidance. Updated 5 May 2025. https://example.org/guidance Accessed 2 June 2025

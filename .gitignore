@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Local tooling state (remember plugin runtime data — not part of the skill)
+.remember/
+
+# Python
+__pycache__/
+*.pyc

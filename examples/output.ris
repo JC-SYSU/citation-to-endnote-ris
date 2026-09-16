@@ -1,0 +1,31 @@
+TY  - JOUR
+AU  - Smith, J.
+AU  - Lee, A.
+TI  - Example article
+T2  - Journal of Examples
+PY  - 2024
+VL  - 12
+IS  - 3
+SP  - 101
+EP  - 109
+DO  - 10.1234/example.1
+ER  -
+
+TY  - CPAPER
+AU  - Brown, T.
+TI  - Example poster title
+T2  - Annual Example Congress
+PY  - 2023
+CY  - Boston
+M3  - Poster
+N1  - Poster 442
+ER  -
+
+TY  - ELEC
+AU  - World Health Organization,
+TI  - Example web guidance
+PY  - 2025
+DA  - 2025/05/05
+UR  - https://example.org/guidance
+N1  - Accessed 2025/06/02
+ER  -
