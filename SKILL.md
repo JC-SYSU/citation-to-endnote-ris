@@ -1,6 +1,6 @@
 ---
 name: citation-to-endnote-ris
-description: Convert messy, irregular text containing one or many bibliographic citations into a clean, semantically parsed, reference-type-aware, batch-importable EndNote RIS (.ris) file. Use when citations may have inconsistent punctuation, line breaks, field order, missing labels, mixed reference types, DOI/PMID/URL forms, journal articles, meeting abstracts, conference papers/proceedings, books, reports, theses, datasets, or web pages. Do not use merely to reformat an already-valid RIS file unless validation or repair is requested.
+description: Convert messy, irregular text containing one or many bibliographic citations into a clean, semantically parsed, reference-type-aware, batch-importable EndNote RIS (.ris) file. Use when citations may have inconsistent punctuation, line breaks, field order, missing labels, mixed reference types, DOI/PMID/URL forms, journal articles, meeting abstracts, conference papers/proceedings, books, reports, theses, datasets, web pages, or Chinese-language references. Do not use merely to reformat an already-valid RIS file unless validation or repair is requested.
 license: MIT
 ---
 
@@ -8,7 +8,7 @@ license: MIT
 
 Convert unstructured or semi-structured citation text into one validated RIS file containing all references in input order, suitable for batch import into EndNote.
 
-Use with Claude Code, Codex, or OpenCode and filesystem write access. When PubMed Surfing is available, use network access for verification but never replace source data without user approval. When it is missing, offer to install it per section 4 before deciding the verification outcome; conversion must never be blocked by its absence.
+Use with Claude Code, Codex, or OpenCode and filesystem write access. When PubMed Surfing is available, use network access for verification but never replace source data without user approval. When it is missing, offer to install it per section 4 before deciding the verification outcome; conversion must never be blocked by its absence. Wanfang verification for Chinese records works the same way when that MCP is present — same discipline, no install flow.
 
 The core task is semantic bibliographic reconstruction, not regex-only conversion.
 
@@ -32,7 +32,7 @@ If filesystem access is available, create the file rather than merely printing R
 - Never invent bibliographic facts.
 - Never fabricate authors, titles, journal names, dates, volume/issue/pages, DOI, PMID, ISBN/ISSN, conference details, publishers, URLs, or access dates.
 - Do not silently “correct” a field using model memory.
-- By default, derive the RIS from only the supplied text/files. PubMed Surfing verification is the exception: use it automatically when available, but do not apply its values without user approval.
+- By default, derive the RIS from only the supplied text/files. Verification via PubMed Surfing and the Wanfang MCP is the exception: use them automatically when available, but do not apply their values without user approval.
 - Do not perform other online lookup, DOI resolution, or metadata enrichment unless the user explicitly asks to verify, complete, enrich, or look up the references.
 - When a field is uncertain, preserve the best-supported interpretation and record the ambiguity in the completion report. Leave unsupported fields empty.
 - Preserve the user's reference order unless they explicitly request sorting.
@@ -149,9 +149,14 @@ Do not manufacture a PMID from other identifiers.
 - Preserve a more specific date in `DA` when the source provides it and it is useful.
 - Preserve access date for web material only when explicitly supplied.
 
-### 4. Verify identified literature with PubMed Surfing (install it first when missing)
+### 4. Verify identified literature — PubMed Surfing first, Wanfang for Chinese records
 
-After building and conservatively normalizing the semantic records, inspect the tools available in the current environment for the PubMed Surfing MCP tools (not merely a similarly named file or command).
+After building and conservatively normalizing the semantic records, inspect the tools available in the current environment for verification MCP tools (not merely similarly named files or commands):
+
+- PubMed Surfing tools (`pubmed_search`, `pubmed_fetch_abstract`) — the primary source, for records plausibly indexed by PubMed;
+- Wanfang tools (`wanfang_search`, `wanfang_get`) — for Chinese-language records that PubMed would not cover.
+
+PubMed has priority. For a record both services could plausibly cover (e.g. a Chinese journal article indexed in PubMed), verify with PubMed Surfing and use Wanfang only as supplementary evidence or when PubMed yields no confident match.
 
 If PubMed Surfing is available:
 
@@ -169,6 +174,20 @@ If PubMed Surfing is available:
 - After a confident search match, call `pubmed_fetch_abstract` with its PMID. Use the fetch result—not the compact search summary—for field comparison because it returns `pmid`, `title`, `authors`, `journal`, `journal_abbrev`, `year`, `volume`, `issue`, `pages`, and `doi`.
 - Treat a response with `error` as a lookup failure. Treat `partial:true`, blank identity fields, or multiple plausible hits as insufficient evidence until a successful fetch resolves the identity.
 
+#### Chinese-language records: Wanfang verification (when available)
+
+If the Wanfang MCP tools (`wanfang_search`, `wanfang_get`) are present in the environment, verify records that are plausibly Chinese-indexed: Chinese-language titles, Chinese journals, theses, and Chinese conference papers. Do not spend Wanfang calls on clearly English, PubMed-style records. There is no install flow for Wanfang in this skill: if the tools are absent, skip this sub-step and say so in the completion response.
+
+Recipe (field behavior verified against the live MCP):
+
+- Journal articles: call `wanfang_search` with `collections` left at its default (`OpenPeriodicalChi`) and a narrow PQ query such as `标题:<distinctive title words> AND 作者:<first author>`, adding `AND 年份:[<year> TO <year>]` only when needed. Start with `rows: 3`; the 标题 field matches segmented words, so pick the most distinctive fragment of the title.
+- With a DOI: query `DOI:<bare doi>` — the journal collection supports the DOI field.
+- Theses → `collections: ["OpenThesis"]`; conference papers → `collections: ["OpenConference"]`; both use the generic 标题/作者/年份 fields.
+- Search results carry `Id`, `Title` (often with an English parallel title), `Creator[]`, `PeriodicalTitle`, `PublishYear`, and `DOI` when present — enough to judge identity. Accept a match only when an identifier agrees or the title plus author/journal/year evidence establishes the same work; treat ambiguous hits as unverified.
+- After a confident search match, call `wanfang_get` with that `collection` and `Id` for the field comparison. Request `returnedFields` including `Creator`, `PeriodicalTitle`, `PublishYear`, `Volume`, `Issue`, `Page`, `DOI`, `ISSN`: the default list omits `Creator`, `Page` holds start and end pages as one string (e.g. `"1809-1817"`), and `Volume` may be absent for journals that do not use volumes.
+
+The verification discipline is identical to PubMed Surfing: compare field by field, record only material discrepancies, keep source-derived values in the RIS, and distinguish `not indexed`/`no confident match` from a call failure.
+
 #### Auto-install when missing
 
 If the PubMed Surfing MCP tools are not available, do not silently skip: offer to install the server before deciding the verification outcome.
@@ -182,7 +201,7 @@ If the PubMed Surfing MCP tools are not available, do not silently skip: offer t
 4. **Verify the install** with the acceptance checklist in section 5 of INSTALL.md. Then note that MCP configuration is loaded at session start: newly registered tools typically become visible only after a session restart (in Claude Code, exit and restart the session). If the tools are not visible in the current session, report "installed — restart the session and re-run this skill to enable verification" instead of acting as if verification were possible.
 5. **On any failure, degrade gracefully.** Missing Go, no network access, or a step that still fails after its documented failure handling: stop installing, do not block conversion, keep the source-derived RIS as the result, and report the install failure with the INSTALL.md link in the completion response. Do not retry installation within this conversion.
 
-This step is complete when every plausibly PubMed-indexed record is matched, marked unverified, or has a reported lookup failure, and every matched record has been compared field by field.
+This step is complete when every plausibly PubMed-indexed record and every plausibly Wanfang-indexed Chinese record is matched, marked unverified, or has a reported lookup failure, and every matched record has been compared field by field.
 
 ### 5. Determine reference type
 
@@ -379,7 +398,7 @@ If most records are low confidence, still produce the best valid RIS possible un
 
 After writing and validating the source-derived RIS, if PubMed Surfing found discrepancies, show a compact Markdown table with one row per record and field discrepancy:
 
-| Record | Field | Original | PubMed Surfing | Match evidence |
+| Record | Field | Original | Verified value (PubMed/Wanfang) | Match evidence |
 |---|---|---|---|---|
 
 Then ask whether the user wants to replace the original values with the verified values. Do not claim completion while this choice is pending.
@@ -403,6 +422,7 @@ After creating the file, keep the response concise and include:
 - duplicate warnings, if any;
 - validation result.
 - PubMed Surfing verification result: discrepancy table and overwrite question, no material conflicts, lookup failure, install declined or failed (verification skipped), or installed but awaiting a session restart, as applicable.
+- Wanfang verification result for Chinese records: discrepancy table and overwrite question, no material conflicts, lookup failure, or skipped because the Wanfang MCP is not connected — as applicable.
 
 Do not paste the entire RIS into chat unless the user asks to inspect it.
 

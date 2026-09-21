@@ -26,9 +26,10 @@ file. It:
    journal article, meeting abstract, conference paper, book, chapter,
    thesis, report, web page, dataset, and more.
 4. **Verifies — only when you have it.** If the PubMed Surfing MCP server is
-   connected (or you agree to install it), it checks PubMed for discrepancies
-   and shows you a table. Nothing from PubMed touches your file until you
-   approve it.
+   connected (or you agree to install it), it checks PubMed for discrepancies;
+   Chinese-language records are checked against Wanfang when that MCP is
+   connected. Either way you get a discrepancy table, and nothing verified
+   touches your file until you approve it.
 5. **Writes.** Produces a single UTF-8 `.ris` with one record per reference,
    then runs its own syntax validator over it.
 

@@ -99,7 +99,10 @@ The skill can verify references against PubMed when the environment has the
 PubMed Surfing MCP server installed (`JC-SYSU/pubmed-surfing`). When the
 server is missing, the skill offers to install it from that repository's
 `INSTALL.md` with the user's consent; the offer is optional, and conversion
-never blocks on it. No API key is involved in either case.
+never blocks on it. No API key is involved in either case. Chinese-language
+records get the same verification against the Wanfang MCP when it is present
+in the environment; its availability depends on your MCP configuration, and
+the skill simply skips it when absent.
 
 ## 5. Uninstall
 

@@ -79,7 +79,7 @@ python3 ~/.claude/skills/citation-to-endnote-ris/scripts/validate_ris.py ~/.clau
 
 ## 4. 可选：PubMed Surfing 校验
 
-环境的 MCP 里装有 PubMed Surfing 服务（`JC-SYSU/pubmed-surfing`）时，技能可以用它对 PubMed 索引的文献做核对。服务缺失时，技能会在征得你同意后，按该仓库的 `INSTALL.md` 自动安装；这一步完全可选，转换流程不会被它卡住。两种情况都不涉及 API key。
+环境的 MCP 里装有 PubMed Surfing 服务（`JC-SYSU/pubmed-surfing`）时，技能可以用它对 PubMed 索引的文献做核对。服务缺失时，技能会在征得你同意后，按该仓库的 `INSTALL.md` 自动安装；这一步完全可选，转换流程不会被它卡住。两种情况都不涉及 API key。中文文献在环境里装有万方检索 MCP（`wanfang_search` / `wanfang_get`）时同样核对；它是否可用取决于你的 MCP 配置，缺失时技能直接跳过。
 
 ## 5. 卸载
 

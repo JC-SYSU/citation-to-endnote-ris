@@ -4,6 +4,9 @@
 # Local tooling state (remember plugin runtime data — not part of the skill)
 .remember/
 
+# Project Memory store (local, per-project)
+.memory-palace/
+
 # Python
 __pycache__/
 *.pyc
